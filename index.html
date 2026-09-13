@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>拾得物管理サイト｜ジャンボカラオケ広場 三条河原町店</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="./icons/icon-192.svg">
+<link rel="apple-touch-icon" href="./icons/icon-192.svg">
+<style>
+  :root{
+    --bg:#f6f7fb; --card:#ffffff; --ink:#0f172a; --muted:#475569;
+    --line:#e2e8f0; --accent:#0f172a; --accent-ink:#ffffff;
+    --hi:#fde68a; --hi-ink:#7c2d12;
+    --ok:#16a34a; --warn:#b45309; --danger:#b91c1c; --soft:#f1f5f9;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,-apple-system,sans-serif;line-height:1.5;-webkit-text-size-adjust:100%}
+  body{padding-bottom:env(safe-area-inset-bottom)}
+  header.top{
+    position:sticky;top:0;z-index:5;background:var(--accent);color:var(--accent-ink);
+    padding:14px 14px calc(14px + env(safe-area-inset-top));
+    padding-top:calc(14px + env(safe-area-inset-top));
+    display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+    box-shadow:0 4px 14px rgba(0,0,0,.15)
+  }
+  header.top h1{margin:0 12px 0 0;font-size:16px;font-weight:700;letter-spacing:.02em}
+  header.top h1 small{display:block;font-size:11px;opacity:.7;margin-top:2px}
+  .btn{appearance:none;border:1px solid transparent;border-radius:10px;padding:9px 14px;font-weight:700;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:#fbbf24;color:#0f172a}
+  .btn.ghost{background:transparent;color:#fff;border-color:#475569}
+  .btn.dark{background:#0f172a;color:#fff}
+  .btn.danger{background:#b91c1c;color:#fff}
+  .btn.ok{background:#16a34a;color:#fff}
+  .btn.outline{background:#fff;color:#0f172a;border-color:#cbd5e1}
+  main{padding:14px;max-width:1200px;margin:0 auto}
+  .tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
+  .tab{cursor:pointer;padding:8px 14px;border-radius:8px 8px 0 0;font-size:13px;font-weight:700;background:#e2e8f0;color:#0f172a}
+  .tab.active{background:#0f172a;color:#fff}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  table.lst{width:100%;border-collapse:collapse;font-size:13px}
+  .lst th, .lst td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  .lst thead th{background:#0f172a;color:#fff;font-size:12px;position:sticky;top:0}
+  .lst tbody tr.hit{background:var(--hi)!important;color:var(--hi-ink)}
+  .lst tbody tr:nth-child(odd){background:#fafafa}
+  .num{cursor:pointer;color:#0f172a;font-weight:800;text-decoration:underline dotted;text-underline-offset:3px}
+  .num:hover{color:#b45309}
+  .empty{padding:40px 10px;text-align:center;color:#64748b}
+  .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;font-weight:700}
+  .pill.ok{background:#dcfce7;color:#166534}
+  .pill.warn{background:#fef3c7;color:#92400e}
+  .pill.dark{background:#e2e8f0;color:#0f172a}
+  .pill.danger{background:#fee2e2;color:#991b1b}
+  .ribbon{display:flex;gap:8px;align-items:center;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:10px;flex-wrap:wrap}
+  .ribbon span.tag{font-size:12px;color:#64748b}
+  .row-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:14px}
+  .modal-bg.show{display:flex}
+  .modal{background:#fff;width:100%;max-width:560px;border-radius:14px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.25);max-height:90vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom)}
+  .modal h2{margin:0;padding:14px 16px;font-size:15px;background:#0f172a;color:#fff;display:flex;justify-content:space-between;align-items:center}
+  .modal h2 button{background:transparent;color:#fff;border:none;font-size:20px;cursor:pointer}
+  .modal .body{padding:16px;display:flex;flex-direction:column;gap:10px}
+  .field{display:flex;flex-direction:column;gap:4px}
+  .field label{font-size:12px;font-weight:700;color:#0f172a}
+  .field input, .field textarea, .field select{width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:9px 10px;font-size:14px;background:#fff}
+  .field textarea{resize:vertical;min-height:64px}
+  .modal .foot{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;background:#f8fafc;border-top:1px solid var(--line);flex-wrap:wrap}
+  .meta-line{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:#475569;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:8px;padding:8px 10px}
+  .meta-line b{color:#0f172a}
+  .chk-row{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid var(--line)}
+  .chk-row:last-child{border-bottom:none}
+  .chk-row input{transform:scale(1.3)}
+  .chk-row .who{font-size:12px;color:#64748b}
+  .notice{font-size:12px;color:#475569;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:8px 10px;line-height:1.6}
+  .logbox{max-height:180px;overflow:auto;background:#0f172a;color:#d1d5db;border-radius:8px;padding:8px 10px;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;line-height:1.55;white-space:pre-wrap}
+  /* 印刷ビュー */
+  #printView{display:none}
+  .print-sheet{padding:18px 22px}
+  .print-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px}
+  .print-formNo{font-size:11px}
+  .print-title{text-align:center;font-size:22px;font-weight:800;letter-spacing:.5em;margin:6px 0 10px}
+  .print-meta{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;font-size:12px;margin-bottom:14px}
+  .print-meta .shop b{display:block;font-size:13px}
+  .print-terms{font-size:12px;margin-bottom:10px}
+  .print-terms div{line-height:1.7}
+  .print-lede{font-size:13px;margin:6px 0 8px}
+  .print-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+  .print-table th, .print-table td{border:1px solid #0f172a;padding:6px 8px;vertical-align:top;word-break:break-word}
+  .print-table thead th{background:#f1f5f9;text-align:center}
+  .print-table td.em{font-weight:700}
+  .print-foot{display:flex;justify-content:space-between;font-size:12px;margin-top:18px;gap:10px}
+  .print-foot .sign{border:1px solid #0f172a;border-radius:6px;padding:10px 14px;text-align:center;min-width:160px}
+  @media print{
+    body{background:#fff}
+    header.top,.tabs,#mainView,#chkModal,#newModal,#queryModal,#syncModal,#impModal,.ribbon{display:none!important}
+    #printView{display:block!important}
+    .print-sheet{padding:6mm}
+    .print-table th, .print-table td{border-color:#000}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>拾得物管理
+    <small>ジャンボカラオケ広場 三条河原町店</small>
+  </h1>
+  <button class="btn primary" id="btnNew">➕ 新規登録</button>
+  <button class="btn ghost" id="btnReport">🚓 交番届出準備</button>
+  <button class="btn ghost" id="btnSyncNow" title="今すぐ同期">🔄 今すぐ同期</button>
+  <button class="btn ghost" id="btnSyncCfg" title="同期設定">⚙ 同期設定</button>
+  <button class="btn ghost" id="btnExportJson" title="JSON書き出し">💾 出力</button>
+  <button class="btn ghost" id="btnImportJson" title="JSON読み込み">📥 取込</button>
+  <button class="btn ghost" id="btnReset" title="全削除">🗑 全削除</button>
+</header>
+
+<main>
+  <div class="ribbon">
+    <span class="tag">現在の表示：</span>
+    <span id="statusBadge" class="pill dark">未対応 0件</span>
+    <span class="tag">今月の新規採番：</span>
+    <span id="nextLabel" class="pill warn">--</span>
+    <span class="tag" style="margin-left:8px">同期：</span>
+    <span id="syncBadge" class="pill dark" title="クリックで手動同期">未接続</span>
+    <span style="flex:1"></span>
+    <span class="tag" id="peerHint">単一端末モード（バックエンド未設定）</span>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <div class="tab active" data-view="active">データ一覧</div>
+    <div class="tab" data-view="handed">別シート（受渡済）</div>
+    <div class="tab" data-view="reported">別シート（交番届出済）</div>
+  </div>
+
+  <section class="card" id="mainView">
+    <table class="lst" id="table">
+      <thead>
+        <tr>
+          <th>管理番号</th><th>担当者</th><th>日付</th><th>時間</th>
+          <th>物品名</th><th>特徴</th><th>氏名</th><th>電話番号</th><th>受取予定日時</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="emptyMsg">まだ登録がありません。「➕ 新規登録」から始めましょう。</div>
+  </section>
+
+  <section id="printView" class="card print-sheet" aria-hidden="true">
+    <div class="print-head">
+      <div class="print-formNo">式第２号（第６条関係）</div>
+      <div class="print-formNo" id="printDate"></div>
+    </div>
+    <div class="print-title">拾　得　物　届　出　書</div>
+    <div class="print-meta">
+      <div class="print-terms">
+        <div>下記の物品に関して</div>
+        <div>権利放棄致します</div>
+        <div>氏名告知無し</div>
+      </div>
+      <div class="shop">
+        <div>事業所所在地：三条河原町</div>
+        <div>事業所名：<b>ジャンボカラオケ広場　三条河原町店</b></div>
+        <div>TEL：090-6737-4511</div>
+      </div>
+      <div>
+        <div>店長</div>
+        <div style="border:1px solid #000;border-radius:4px;padding:8px 14px;margin-top:4px">塚田　直紀　印</div>
+      </div>
+    </div>
+    <div class="print-lede">下記の拾得物を届けます。</div>
+    <table class="print-table">
+      <colgroup>
+        <col style="width:7%"><col style="width:24%"><col style="width:18%">
+        <col style="width:11%"><col style="width:12%"><col style="width:18%"><col style="width:10%">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>番号</th><th>拾得物<br>（種類・形状・模様・品質特徴等）</th><th>特徴</th>
+          <th>拾得日時</th><th>拾得場所</th><th>拾得者の住所及び氏名</th><th>備考</th>
+        </tr>
+      </thead>
+      <tbody id="printRows"></tbody>
+    </table>
+    <div class="print-foot">
+      <div>※ 本様式は店内控えです。所轄交番へ提出する前に内容をご確認ください。</div>
+      <div class="sign">受領者　印</div>
+    </div>
+  </section>
+</main>
+
+<!-- 新規登録モーダル -->
+<div class="modal-bg" id="newModal">
+  <div class="modal">
+    <h2>新規登録 <button data-close="newModal" aria-label="閉じる">×</button></h2>
+    <div class="body">
+      <div class="meta-line">採番される番号：<b id="newNumPreview">--</b></div>
+      <div class="field"><label>担当者 *</label><input id="i_staff" placeholder="例：塚田"></div>
+      <div class="field"><label>日付 *</label><input id="i_date" type="date"></div>
+      <div class="field"><label>時間 *</label><input id="i_time" type="time"></div>
+      <div class="field"><label>場所 *</label><input id="i_place" placeholder="例：3階 301号室"></div>
+      <div class="field"><label>物品名 *</label><input id="i_item" placeholder="例：黒い財布"></div>
+      <div class="field"><label>特徴</label><textarea id="i_feat" placeholder="色・ブランド・大きさ・匂いなど"></textarea></div>
+    </div>
+    <div class="foot">
+      <button class="btn outline" data-close="newModal">キャンセル</button>
+      <button class="btn primary" id="btnSaveNew">登録</button>
+    </div>
+  </div>
+</div>
+
+<!-- 問い合わせ・受渡モーダル -->
+<div class="modal-bg" id="queryModal">
+  <div class="modal">
+    <h2>問い合わせ登録 <button data-close="queryModal" aria-label="閉じる">×</button></h2>
+    <div class="body">
+      <div class="meta-line" id="qMeta"></div>
+      <div class="field"><label>氏名</label><input id="q_name" placeholder="例：山田 太郎"></div>
+      <div class="field"><label>電話番号</label><input id="q_tel" placeholder="例：090-1234-5678"></div>
+      <div class="field"><label>受取予定日時</label><input id="q_pickup" type="datetime-local"></div>
+    </div>
+    <div class="foot">
+      <button class="btn danger" id="btnHanded">✅ 受渡完了</button>
+      <button class="btn outline" data-close="queryModal">キャンセル</button>
+      <button class="btn primary" id="btnSaveQ">登録</button>
+    </div>
+  </div>
+</div>
+
+<!-- 交番届出：チェックボックス -->
+<div class="modal-bg" id="chkModal">
+  <div class="modal">
+    <h2>交番届出準備 <button data-close="chkModal" aria-label="閉じる">×</button></h2>
+    <div class="body">
+      <div class="meta-line">受渡未完了かつ交番未届出の物品のみ表示しています。</div>
+      <div id="chkList" style="border:1px solid var(--line);border-radius:8px;overflow:hidden"></div>
+    </div>
+    <div class="foot">
+      <button class="btn outline" data-close="chkModal">キャンセル</button>
+      <button class="btn primary" id="btnBuildPrint">届出一覧を生成</button>
+    </div>
+  </div>
+</div>
+
+<!-- 同期設定モーダル -->
+<div class="modal-bg" id="syncModal">
+  <div class="modal" style="max-width:620px">
+    <h2>⚙ 同期設定 <button data-close="syncModal" aria-label="閉じる">×</button></h2>
+    <div class="body">
+      <div class="notice">
+        複数PCで同じデータを共有するには、<b>どれか1つのバックエンド</b>を選んで接続情報を貼り付けてください。<br>
+        未設定でもこのHTMLは動きますが、<b>ローカル保存のみ</b>で別PCには反映されません。
+      </div>
+      <div class="field">
+        <label>バックエンド</label>
+        <select id="cfg_backend">
+          <option value="">(未接続：ローカル単独)</option>
+          <option value="supabase">Supabase REST（推奨／自前サーバ不要）</option>
+          <option value="gas">Google Apps Script + スプレッドシート</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>エンドポイントURL</label>
+        <input id="cfg_url" placeholder="Supabase: https://xxxx.supabase.co ／ GAS: https://script.google.com/.../exec">
+      </div>
+      <div class="field">
+        <label>APIキー（anonキー等）</label>
+        <input id="cfg_key" placeholder="Supabase の anon public key ／ GAS は空でOK">
+      </div>
+      <div class="field">
+        <label>テーブル名（Supabaseのみ）</label>
+        <input id="cfg_table" value="lostfound" placeholder="lostfound">
+      </div>
+      <div class="field">
+        <label>ポーリング間隔（秒）</label>
+        <input id="cfg_poll" type="number" min="5" max="600" value="30">
+      </div>
+      <div class="meta-line" id="cfg_state">状態：未接続</div>
+      <details>
+        <summary style="cursor:pointer;font-size:12px;color:#0f172a">設定済のSupabaseに合うテーブル定義（SQL）</summary>
+        <pre class="logbox">create table if not exists &lt;table&gt; (
+  id text primary key,
+  payload jsonb not null,
+  updated_at bigint not null,
+  deleted boolean default false
+);
+alter table &lt;table&gt; enable row level security;
+create policy "anon_all" on &lt;table&gt; for all using (true) with check (true);</pre>
+      </details>
+      <details>
+        <summary style="cursor:pointer;font-size:12px;color:#0f172a">ログ（直近20件）</summary>
+        <pre class="logbox" id="syncLog"></pre>
+      </details>
+      <div class="notice">
+        <b>セキュリティ注意：</b>APIキーはこの端末のブラウザに平文保存されます。共用PCでは閲覧データ消去やスタッフ専用端末運用を推奨します。
+      </div>
+    </div>
+    <div class="foot">
+      <button class="btn danger" id="btnSyncClear">接続解除</button>
+      <button class="btn outline" data-close="syncModal">閉じる</button>
+      <button class="btn outline" id="btnSyncTest">接続テスト</button>
+      <button class="btn primary" id="btnSyncSave">保存して同期開始</button>
+    </div>
+  </div>
+</div>
+
+<!-- 取込モーダル -->
+<div class="modal-bg" id="impModal">
+  <div class="modal">
+    <h2>📥 データ取込 <button data-close="impModal" aria-label="閉じる">×</button></h2>
+    <div class="body">
+      <div class="notice">バックアップ用JSONを貼り付けると、現在のローカルデータと<b>last-write-wins</b>で統合されます。</div>
+      <div class="field"><label>JSON</label><textarea id="imp_text" rows="8" placeholder='{"data":[], "counter":{...}}'></textarea></div>
+      <input type="file" id="imp_file" accept="application/json,.json" style="font-size:12px">
+    </div>
+    <div class="foot">
+      <button class="btn outline" data-close="impModal">キャンセル</button>
+      <button class="btn primary" id="btnImpDo">取り込む</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ストレージキー */
+const STORE_KEY  = "lf_v1_data";
+const COUNTER_KEY= "lf_v1_counter";
+const REMOTE_KEY = "lf_v1_remote";
+const QUEUE_KEY  = "lf_v1_queue";
+const LOGBUF_KEY = "lf_v1_logbuf";
+
+let logBuf = [];
+function log(msg){
+  const t = new Date().toLocaleTimeString();
+  const line = `[${t}] ${msg}`;
+  logBuf.unshift(line);
+  if(logBuf.length>40) logBuf.length=40;
+  try{ localStorage.setItem(LOGBUF_KEY, JSON.stringify(logBuf)) }catch(e){}
+  const el = document.getElementById("syncLog");
+  if(el) el.textContent = logBuf.slice(0,20).join("\n");
+  refreshSyncBadge();
+}
+function loadLog(){
+  try{ logBuf = JSON.parse(localStorage.getItem(LOGBUF_KEY))||[] }catch(e){ logBuf=[] }
+}
+
+function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY))||[] }catch(e){ return [] } }
+function save(arr){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(arr)) }catch(e){} }
+function ensureMigrated(arr){
+  let dirty=false;
+  arr.forEach(r=>{
+    if(!r.id){ r.id="r"+(Date.now()+"-"+Math.random().toString(16).slice(2,8)); dirty=true }
+    if(typeof r.updatedAt!=="number"){ r.updatedAt = Date.now(); dirty=true }
+    if(typeof r.deleted!=="boolean"){ r.deleted = false; dirty=true }
+  });
+  if(dirty) save(arr);
+  return arr;
+}
+
+function loadCounter(){ try{ return JSON.parse(localStorage.getItem(COUNTER_KEY))||{month:null,next:1} }catch(e){ return {month:null,next:1} } }
+function saveCounter(c){ try{ localStorage.setItem(COUNTER_KEY, JSON.stringify(c)) }catch(e){} }
+function nextNumber(){
+  const today = new Date(); const m = today.getMonth()+1;
+  const c = loadCounter();
+  if(c.month !== m){ c.month = m; c.next = 1 }
+  const n = `${m}-${c.next}`;
+  c.next += 1;
+  saveCounter(c);
+  return n;
+}
+function previewNext(){
+  const today = new Date(); const m = today.getMonth()+1;
+  const c = loadCounter();
+  const used = (c.month===m) ? c.next : 1;
+  return `${m}-${used}`;
+}
+function rebalanceCounter(records){
+  const c = loadCounter();
+  const m = new Date().getMonth()+1;
+  let max = 0;
+  records.forEach(r=>{ if(r.month===m && typeof r.seq==="number" && r.seq>max) max=r.seq });
+  c.month = m;
+  c.next  = Math.max(c.next||1, max+1);
+  saveCounter(c);
+}
+
+/* 同期 */
+function getRemote(){ try{ return JSON.parse(localStorage.getItem(REMOTE_KEY))||null }catch(e){ return null } }
+function setRemote(c){ if(c==null){ try{ localStorage.removeItem(REMOTE_KEY) }catch(e){} } else try{ localStorage.setItem(REMOTE_KEY, JSON.stringify(c)) }catch(e){} }
+function isOnline(){ return navigator.onLine }
+let isSyncing = false;
+let pollTimer = null;
+
+function enqueueQueueItem(item){ const q = JSON.parse(localStorage.getItem(QUEUE_KEY)||"[]"); q.push(item); try{ localStorage.setItem(QUEUE_KEY, JSON.stringify(q)) }catch(e){} }
+function drainQueue(){ const q = JSON.parse(localStorage.getItem(QUEUE_KEY)||"[]"); try{ localStorage.setItem(QUEUE_KEY, "[]") }catch(e){} return q; }
+
+async function supabaseList(cfg){
+  const url = `${cfg.url.replace(/\/+$/,'')}/rest/v1/${encodeURIComponent(cfg.table||"lostfound")}?select=*`;
+  const res = await fetch(url, { headers: supabaseHeaders(cfg) });
+  if(!res.ok) throw new Error(`GET ${res.status}`);
+  return await res.json();
+}
+function supabaseHeaders(cfg){ return { "apikey": cfg.key, "Authorization": `Bearer ${cfg.key}`, "Content-Type":"application/json" }; }
+async function supabaseUpsert(cfg, rows){
+  const url = `${cfg.url.replace(/\/+$/,'')}/rest/v1/${encodeURIComponent(cfg.table||"lostfound")}`;
+  const res = await fetch(url, { method:"POST", headers: Object.assign(supabaseHeaders(cfg), { "Prefer":"resolution=merge-duplicates" }), body: JSON.stringify(rows.map(toRow)) });
+  if(!res.ok){ const t = await res.text().catch(()=>""); throw new Error(`POST ${res.status} ${t.slice(0,120)}`); }
+}
+function toRow(r){ return { id:r.id, payload:r, updated_at:r.updatedAt, deleted:!!r.deleted } }
+function fromRow(row){ if(row && row.payload && typeof row.payload==="object"){ const p=row.payload; p.updatedAt = row.updated_at ?? p.updatedAt; p.deleted = row.deleted ?? p.deleted ?? false; return p; } return row; }
+
+async function gasList(cfg){ const url = `${cfg.url}?action=list`; const res = await fetch(url, { method:"GET" }); if(!res.ok) throw new Error(`GET ${res.status}`); const j = await res.json(); return j.records || []; }
+async function gasUpsert(cfg, rows){ const res = await fetch(cfg.url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ records: rows }) }); if(!res.ok){ const t = await res.text().catch(()=>""); throw new Error(`POST ${res.status} ${t.slice(0,120)}`); } return await res.json().catch(()=>({ok:true})); }
+
+async function remoteList(cfg){
+  if(cfg.backend==="supabase") return (await supabaseList(cfg)).map(fromRow);
+  if(cfg.backend==="gas")      return (await gasList(cfg));
+  throw new Error("unknown backend");
+}
+async function remoteUpsert(cfg, rows){
+  if(rows.length===0) return;
+  if(cfg.backend==="supabase") return await supabaseUpsert(cfg, rows);
+  if(cfg.backend==="gas")      return await gasUpsert(cfg, rows);
+  throw new Error("unknown backend");
+}
+
+function mergeRecords(local, remote){
+  const map = new Map();
+  local.forEach(r=> map.set(r.id, r));
+  remote.forEach(r=>{ const cur = map.get(r.id); if(!cur || (r.updatedAt||0) >= (cur.updatedAt||0)){ map.set(r.id, r); } });
+  return Array.from(map.values());
+}
+function alive(arr){ return arr.filter(r=>!r.deleted) }
+
+async function doSyncNow(trigger="manual"){
+  const cfg = getRemote();
+  if(!cfg){ refreshSyncBadge(); return; }
+  if(!isOnline()){ log("オフラインのため同期を保留"); refreshSyncBadge(); return; }
+  if(isSyncing) return;
+  isSyncing = true;
+  try{
+    const q = drainQueue();
+    if(q.length){
+      try{ await remoteUpsert(cfg, q); log(`キュー送信：${q.length}件`); }
+      catch(e){ const cur = JSON.parse(localStorage.getItem(QUEUE_KEY)||"[]"); cur.push(...q); try{ localStorage.setItem(QUEUE_KEY, JSON.stringify(cur)) }catch(_){ } log(`キュー送信失敗：${e.message}`); refreshSyncBadge(); throw e; }
+    }
+    const remote = await remoteList(cfg);
+    const local  = ensureMigrated(load());
+    const merged = mergeRecords(local, remote);
+    save(merged);
+    rebalanceCounter(merged);
+    const remoteMap = new Map(remote.map(r=>[r.id, r]));
+    const toPush = merged.filter(r=>{ const rr = remoteMap.get(r.id); return !rr || (r.updatedAt||0) > (rr.updatedAt||0); });
+    if(toPush.length){ await remoteUpsert(cfg, toPush); log(`プッシュ：${toPush.length}件`); }
+    log(`同期完了（${trigger}）`);
+  } catch(e){ log(`同期失敗：${e.message}`); }
+  finally { isSyncing = false; refreshSyncBadge(); render(); }
+}
+
+function startPolling(){
+  const cfg = getRemote();
+  if(pollTimer){ clearInterval(pollTimer); pollTimer=null }
+  if(!cfg) return;
+  const sec = Math.max(5, Number(cfg.pollSec||30));
+  doSyncNow("boot");
+  pollTimer = setInterval(()=>doSyncNow("poll"), sec*1000);
+}
+
+function refreshSyncBadge(){
+  const cfg = getRemote();
+  const el = document.getElementById("syncBadge");
+  const peer = document.getElementById("peerHint");
+  if(!cfg){ el.textContent="未接続"; el.className="pill dark"; peer.textContent="単一端末モード（バックエンド未設定）"; return; }
+  const q = JSON.parse(localStorage.getItem(QUEUE_KEY)||"[]");
+  if(!isOnline()){ el.textContent = `オフライン（未送信 ${q.length}件）`; el.className="pill warn"; }
+  else if(isSyncing){ el.textContent="同期中…"; el.className="pill warn"; }
+  else if(q.length){ el.textContent = `未送信 ${q.length}件`; el.className="pill warn"; }
+  else { const last = logBuf.find(l=>/同期完了/.test(l)); el.textContent = last? "同期済 ("+last.replace(/\[.*?\]\s*/,"")+")" : "接続済"; el.className="pill ok"; }
+  peer.textContent = `同期ON：${cfg.backend}（${cfg.url.slice(0,40)}…）`;
+}
+
+/* 描画 */
+let currentView = "active";
+let queryTargetId = null;
+
+function statusBadge(){
+  const arr = alive(load());
+  const counts = {active:0,handed:0,reported:0};
+  arr.forEach(r=>{ if(counts[r.status]!=null) counts[r.status]++ });
+  const el = document.getElementById("statusBadge");
+  if(currentView==="active"){ el.className="pill warn"; el.textContent=`未対応 ${counts.active}件`; }
+  else if(currentView==="handed"){ el.className="pill ok"; el.textContent=`受渡済 ${counts.handed}件`; }
+  else { el.className="pill dark"; el.textContent=`交番届出済 ${counts.reported}件`; }
+  document.getElementById("nextLabel").textContent = previewNext();
+}
+
+function render(){
+  const arr = ensureMigrated(alive(load()))
+    .filter(r=>r.status===currentView)
+    .sort((a,b)=> (a.month-b.month) || (a.seq-b.seq));
+  const tb = document.getElementById("tbody");
+  const empty = document.getElementById("emptyMsg");
+  tb.innerHTML = "";
+  if(arr.length===0){ empty.style.display="block"; }
+  else {
+    empty.style.display="none";
+    arr.forEach(r=>{
+      const tr = document.createElement("tr");
+      const has = !!(r.name||r.phone||r.pickup);
+      if(has) tr.classList.add("hit");
+      tr.innerHTML = `
+        <td><span class="num" data-id="${r.id}">${escape(r.num)}</span></td>
+        <td>${escape(r.staff)}</td>
+        <td>${escape(r.date)}</td>
+        <td>${escape(r.time)}</td>
+        <td>${escape(r.item)}</td>
+        <td>${escape(r.feature||"")}</td>
+        <td>${escape(r.name||"")}</td>
+        <td>${escape(r.phone||"")}</td>
+        <td>${escape(r.pickup||"")}</td>
+        <td><div class="row-actions">
+          <button class="btn outline" data-del="${r.id}">削除</button>
+        </div></td>`;
+      tb.appendChild(tr);
+    });
+  }
+  statusBadge();
+  refreshSyncBadge();
+}
+function escape(s){return (s??'').toString().replace(/[&<>"']/g,c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
+
+function openModal(id){document.getElementById(id).classList.add("show")}
+function closeModal(id){document.getElementById(id).classList.remove("show")}
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>closeModal(b.dataset.close)))
+document.querySelectorAll(".modal-bg").forEach(m=>m.addEventListener("click",e=>{ if(e.target===m) m.classList.remove("show") }))
+
+function touchAndPush(record){
+  record.updatedAt = Date.now();
+  const arr = load();
+  const idx = arr.findIndex(r=>r.id===record.id);
+  if(idx>=0) arr[idx]=record; else arr.push(record);
+  save(arr);
+  if(getRemote()){
+    if(isOnline()){ remoteUpsert(getRemote(), [record]).catch(()=>enqueueQueueItem(record)); }
+    else { enqueueQueueItem(record); }
+  }
+}
+
+document.getElementById("btnNew").addEventListener("click",()=>{
+  const t = new Date();
+  document.getElementById("i_date").value = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`;
+  document.getElementById("i_time").value = `${String(t.getHours()).padStart(2,"0")}:${String(t.getMinutes()).padStart(2,"0")}`;
+  ["i_staff","i_place","i_item","i_feat"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("newNumPreview").textContent = previewNext();
+  openModal("newModal");
+})
+document.getElementById("btnSaveNew").addEventListener("click",()=>{
+  const staff = document.getElementById("i_staff").value.trim();
+  const date = document.getElementById("i_date").value;
+  const time = document.getElementById("i_time").value;
+  const place = document.getElementById("i_place").value.trim();
+  const item = document.getElementById("i_item").value.trim();
+  const feature = document.getElementById("i_feat").value.trim();
+  if(!staff||!date||!time||!place||!item){alert("担当者・日付・時間・場所・物品名は必須です");return}
+  const num = nextNumber();
+  const [m,s] = num.split("-").map(Number);
+  const rec = {
+    id:"r"+(Date.now()+"-"+Math.random().toString(16).slice(2,8)),
+    num, month:m, seq:s,
+    staff, date, time, place, item, feature,
+    name:"", phone:"", pickup:"",
+    status:"active",
+    deleted:false,
+    createdAt:new Date().toISOString(),
+    updatedAt:Date.now()
+  };
+  touchAndPush(rec);
+  closeModal("newModal");
+  render();
+})
+
+document.getElementById("tbody").addEventListener("click",e=>{
+  const delBtn = e.target.closest("[data-del]");
+  if(delBtn){
+    if(!confirm("この行を削除します（同期ONなら他端末からも消えます）。よろしいですか？")) return;
+    const id = delBtn.dataset.del;
+    const arr = load();
+    const r = arr.find(x=>x.id===id); if(!r) return;
+    r.deleted = true; r.updatedAt = Date.now();
+    save(arr);
+    if(getRemote()) remoteUpsert(getRemote(),[r]).catch(()=>enqueueQueueItem(r));
+    render(); return;
+  }
+  const numBtn = e.target.closest(".num");
+  if(numBtn){
+    queryTargetId = numBtn.dataset.id;
+    const r = load().find(x=>x.id===queryTargetId);
+    if(!r) return;
+    document.getElementById("qMeta").innerHTML = `<b>${escape(r.num)}</b> ｜ ${escape(r.item)}（${escape(r.place)}）｜ ${escape(r.date)} ${escape(r.time)} ｜ ${escape(r.staff)}`;
+    document.getElementById("q_name").value = r.name||"";
+    document.getElementById("q_tel").value   = r.phone||"";
+    document.getElementById("q_pickup").value= r.pickup? r.pickup.replace(" ","T") : "";
+    openModal("queryModal");
+  }
+})
+
+document.getElementById("btnSaveQ").addEventListener("click",()=>{
+  const arr = load();
+  const r = arr.find(x=>x.id===queryTargetId); if(!r) return;
+  r.name  = document.getElementById("q_name").value.trim();
+  r.phone = document.getElementById("q_tel").value.trim();
+  const pt = document.getElementById("q_pickup").value;
+  r.pickup= pt ? pt.replace("T"," ") : "";
+  r.updatedAt = Date.now();
+  save(arr);
+  if(getRemote()) remoteUpsert(getRemote(),[r]).catch(()=>enqueueQueueItem(r));
+  closeModal("queryModal");
+  render();
+})
+
+document.getElementById("btnHanded").addEventListener("click",()=>{
+  const arr = load();
+  const r = arr.find(x=>x.id===queryTargetId); if(!r) return;
+  r.name  = document.getElementById("q_name").value.trim();
+  r.phone = document.getElementById("q_tel").value.trim();
+  const pt = document.getElementById("q_pickup").value;
+  r.pickup= pt ? pt.replace("T"," ") : "";
+  r.status = "handed";
+  r.updatedAt = Date.now();
+  if(!confirm(`「${r.num}」を受渡済みに移動します。よろしいですか？`)) return;
+  save(arr);
+  if(getRemote()) remoteUpsert(getRemote(),[r]).catch(()=>enqueueQueueItem(r));
+  closeModal("queryModal");
+  render();
+})
+
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  t.classList.add("active"); currentView = t.dataset.view; render();
+}))
+
+document.getElementById("btnReset").addEventListener("click",()=>{
+  if(!confirm("保存されたデータをすべて削除します（元に戻せません／同期ONの他端末にも反映されます）。よろしいですか？")) return;
+  const arr = load();
+  arr.forEach(r=>{ r.deleted = true; r.updatedAt = Date.now() });
+  save(arr);
+  if(getRemote()) remoteUpsert(getRemote(), arr).catch(()=>arr.forEach(r=>enqueueQueueItem(r)));
+  render();
+})
+
+document.getElementById("btnExportJson").addEventListener("click",()=>{
+  const blob = new Blob([JSON.stringify({data:alive(load()),counter:loadCounter()},null,2)],{type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `lostfound_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+})
+
+document.getElementById("btnImportJson").addEventListener("click",()=>{
+  document.getElementById("imp_text").value="";
+  openModal("impModal");
+})
+document.getElementById("btnImpDo").addEventListener("click",()=>{
+  const txt = document.getElementById("imp_text").value.trim();
+  if(!txt){alert("JSONを入力してください");return}
+  try{
+    const obj = JSON.parse(txt);
+    const incoming = (obj.data||[]).map(r=>({...r, deleted:false, updatedAt:r.updatedAt||Date.now()}));
+    const cur = ensureMigrated(load());
+    const merged = mergeRecords(cur, incoming);
+    save(merged);
+    if(obj.counter) saveCounter(Object.assign(loadCounter(), obj.counter));
+    rebalanceCounter(merged);
+    if(getRemote()) remoteUpsert(getRemote(), merged).catch(()=>merged.forEach(r=>enqueueQueueItem(r)));
+    closeModal("impModal"); render();
+  }catch(e){ alert("JSONの形式エラー： "+e.message) }
+})
+document.getElementById("imp_file").addEventListener("change", e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{ document.getElementById("imp_text").value = r.result };
+  r.readAsText(f,"utf-8");
+})
+
+document.getElementById("btnReport").addEventListener("click",()=>{
+  const list = ensureMigrated(alive(load())).filter(r=>r.status==="active");
+  const box = document.getElementById("chkList");
+  box.innerHTML = "";
+  if(list.length===0){
+    box.innerHTML = '<div class="empty" style="padding:20px">該当する物品がありません。</div>';
+  } else {
+    list.sort((a,b)=>(a.month-b.month)||(a.seq-b.seq)).forEach(r=>{
+      const row = document.createElement("label");
+      row.className = "chk-row";
+      row.innerHTML = `
+        <input type="checkbox" checked data-id="${r.id}">
+        <span style="font-weight:800">${r.num}</span>
+        <span class="who">${escape(r.item)} ／ ${escape(r.place)} ／ ${escape(r.date)} ${escape(r.time)} ／ ${escape(r.staff)}</span>`;
+      box.appendChild(row);
+    });
+  }
+  openModal("chkModal");
+})
+document.getElementById("btnBuildPrint").addEventListener("click",()=>{
+  const ids = [...document.querySelectorAll("#chkList input:checked")].map(i=>i.dataset.id);
+  if(ids.length===0){alert("1つ以上選択してください");return}
+  const arr = ensureMigrated(alive(load()));
+  const selected = arr.filter(r=>ids.includes(r.id))
+    .sort((a,b)=>(a.month-b.month)||(a.seq-b.seq));
+
+  const rowHTML = (r)=>`
+    <tr>
+      <td class="em">${r.num}</td>
+      <td>${escape(r.item)}</td>
+      <td>${escape(r.feature||"")}</td>
+      <td>${escape(r.date)} ${escape(r.time)}</td>
+      <td>${escape(r.place)}</td>
+      <td>${escape(r.name||"（氏名告知無し）")} ${r.phone?`／TEL ${escape(r.phone)}`:""}</td>
+      <td>${escape(r.pickup?`受取予定：${r.pickup}`:"")}</td>
+    </tr>`;
+  const rows = selected.map(rowHTML).join("");
+  const fills = Array(8).fill(`<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`).join("");
+  document.getElementById("printRows").innerHTML = rows + fills;
+  const d = new Date();
+  document.getElementById("printDate").textContent =
+    `${d.getFullYear()}年 ${d.getMonth()+1}月 ${d.getDate()}日`;
+  closeModal("chkModal");
+  setTimeout(()=>{
+    window.print();
+    selected.forEach(r=>{ r.status="reported"; r.reportedAt=new Date().toISOString(); r.updatedAt=Date.now(); });
+    save(arr);
+    if(getRemote()) remoteUpsert(getRemote(), selected).catch(()=>selected.forEach(r=>enqueueQueueItem(r)));
+    render();
+    alert("印刷完了後、対象データを『交番届出済』として記録しました。");
+  }, 200);
+})
+
+/* 同期設定 */
+document.getElementById("btnSyncCfg").addEventListener("click",()=>{
+  const cfg = getRemote();
+  document.getElementById("cfg_backend").value = cfg?.backend || "";
+  document.getElementById("cfg_url").value     = cfg?.url || "";
+  document.getElementById("cfg_key").value     = cfg?.key || "";
+  document.getElementById("cfg_table").value   = cfg?.table || "lostfound";
+  document.getElementById("cfg_poll").value    = cfg?.pollSec || 30;
+  document.getElementById("cfg_state").innerHTML = cfg
+    ? `状態：接続待機（${cfg.backend}）`
+    : `状態：未接続`;
+  document.getElementById("syncLog").textContent = logBuf.slice(0,20).join("\n") || "(ログなし)";
+  openModal("syncModal");
+})
+document.getElementById("btnSyncSave").addEventListener("click",()=>{
+  const backend = document.getElementById("cfg_backend").value;
+  const url     = document.getElementById("cfg_url").value.trim();
+  const key     = document.getElementById("cfg_key").value.trim();
+  const table   = document.getElementById("cfg_table").value.trim() || "lostfound";
+  const pollSec = parseInt(document.getElementById("cfg_poll").value,10)||30;
+  if(!backend){ alert("バックエンドを選択してください"); return }
+  if(!url){ alert("エンドポイントURLを入力してください"); return }
+  if(backend==="supabase" && !key){ alert("Supabaseのanonキーが必要です"); return }
+  setRemote({ backend, url, key, table, pollSec });
+  log(`接続情報保存：${backend} ${url}`);
+  startPolling();
+  closeModal("syncModal");
+})
+document.getElementById("btnSyncTest").addEventListener("click", async()=>{
+  const backend = document.getElementById("cfg_backend").value;
+  const url     = document.getElementById("cfg_url").value.trim();
+  const key     = document.getElementById("cfg_key").value.trim();
+  const table   = document.getElementById("cfg_table").value.trim() || "lostfound";
+  if(!backend||!url){ alert("バックエンドとURLを入力してください"); return }
+  if(backend==="supabase" && !key){ alert("Supabaseのanonキーが必要です"); return }
+  const cfg = { backend, url, key, table };
+  document.getElementById("cfg_state").innerHTML = "状態：接続テスト中…";
+  try{
+    const rows = await remoteList(cfg);
+    document.getElementById("cfg_state").innerHTML = `状態：接続OK（既存 ${rows.length}件）`;
+  }catch(e){
+    document.getElementById("cfg_state").innerHTML = `状態：失敗 — ${e.message}`;
+  }
+})
+document.getElementById("btnSyncClear").addEventListener("click",()=>{
+  if(!confirm("接続を解除してローカル単独モードに戻します。よろしいですか？")) return;
+  setRemote(null);
+  try{ localStorage.removeItem(QUEUE_KEY) }catch(e){}
+  if(pollTimer){ clearInterval(pollTimer); pollTimer=null }
+  refreshSyncBadge();
+  closeModal("syncModal");
+})
+
+document.getElementById("syncBadge").addEventListener("click",()=>{
+  if(!getRemote()){ openModal("syncModal"); return; }
+  doSyncNow("manual-button");
+})
+document.getElementById("btnSyncNow").addEventListener("click",()=> doSyncNow("button"));
+window.addEventListener("online", ()=>{ log("オンライン復帰"); if(getRemote()) doSyncNow("online-resume"); });
+window.addEventListener("offline",()=>{ log("オフライン"); refreshSyncBadge(); });
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible" && getRemote()){ doSyncNow("visibility"); } });
+
+/* 起動 */
+loadLog();
+ensureMigrated(load());
+startPolling();
+render();
+</script>
+<script>
+/* PWA Service Worker registration */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{ /* ignore */ });
+  });
+}
+</script>
+</body>
+</html>
