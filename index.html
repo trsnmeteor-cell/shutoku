@@ -692,7 +692,7 @@ document.getElementById("btnReport").addEventListener("click",()=>{
       const row = document.createElement("label");
       row.className = "chk-row";
       row.innerHTML = `
-        <input type="checkbox" checked data-id="${r.id}">
+        <input type="checkbox" data-id="${r.id}">
         <span style="font-weight:800">${r.num}</span>
         <span class="who">${escape(r.item)} ／ ${escape(r.place)} ／ ${escape(r.date)} ${escape(r.time)} ／ ${escape(r.staff)}</span>`;
       box.appendChild(row);
